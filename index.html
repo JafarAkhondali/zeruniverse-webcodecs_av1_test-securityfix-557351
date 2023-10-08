@@ -1,95 +1,38 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<!-- Inspired by https://webaudioapi.com/samples/ -->
 <head>
-<meta charset='utf-8'>
-<title>webcodecs demo</title>
-<style type="text/css">
-body, button {
-    font: 13px Helvetica, arial, freesans, clean, sans-serif;
-}
-a:link {
-    text-decoration: none;
-}
-a:visited {
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
-a:active {
-    text-decoration: none;
-}
-a {
-    color: #00a;
-}
-</style>
-<script>
-    var raw_b, raw_zct;
-
-async function decode(zctdata){
-    document.getElementById("status").innerText = 'Pending';
-    const decoder_config = {
-        codec: "av01.0.01M.08.1",
-        hardwareAcceleration: "no-preference"
-    };
-    let supported = (await VideoDecoder.isConfigSupported(decoder_config)).supported
-    if(!supported){
-        document.getElementById("status").innerText = 'Config Not Supported';
-        return;
-    }
-
-    let success_flag = true;
-
-    const decoder = new VideoDecoder({
-        async output(frame) {
-            document.getElementById("cvs").getContext("2d").drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight);
-            frame.close();
-        },
-        error(e) {
-            success_flag = false;
-        }
-    });
-
-    decoder.configure(decoder_config);
-    let metaints = new Uint8Array(zctdata, 0, 8);
-    let json_len = (metaints[0] << 8) + metaints[1];
-    raw_zct = new Uint8Array(zctdata);
-    let dk = new Uint8Array(zctdata, 8+json_len, zctdata.byteLength -json_len-8);
-    raw_b = new Uint8Array(dk);
-
-
-    const chunk = new EncodedVideoChunk({
-        timestamp: 0,
-        type: "key",
-        data: dk
-    });
-
-    decoder.decode(chunk);
-
-    await decoder.flush();
-
-    decoder.close();
-    document.getElementById("status").innerText = (success_flag)?"Success":"Failed";
-}
-
-function run_decode(url) {
-    var request = new XMLHttpRequest();
-    request.open("get", url, true);
-    request.responseType = "arraybuffer";
-    request.onload = async function(event) {
-        decode(request.response);
-    };
-    request.onerror = function (e) {
-        console.log("Error!");
-    };
-    request.send();
-}
-
-</script>
+  <title>WebCodecs API Samples</title>
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans"/>
+  <link rel="stylesheet" href="samples.css" type="text/css" media="screen"/>
+</head>
 <body>
-    <h1>If success, canvas below will be rendered</h1>
-    <button onclick="run_decode('sample.zct')">decode sample.hevc</button>
-    <canvas id="cvs" width="267px" height="267px"></canvas>
-    <div>Status: <span id="status">Pending</span></div>
+<div id="container">
+  <div id="nav"><ul><li>Samples</li></ul></div>
+  <div id="header"><h1><a href="../">WebCodecs API</a></h1></div>
+  <div id="wrapper">
+    <div id="content">
+      <article onclick="window.location.href='./video-decode-display/';">
+        <h1><a href="./video-decode-display/">Video Decoding and Display</a></h1>
+        <p>Demuxes (using mp4box.js) and decodes an mp4 file, paints to canvas ASAP</p>
+      </article>
+      <article onclick="window.location.href='./audio-video-player/audio_video_player.html';">
+        <h1><a href="./audio-video-player/audio_video_player.html">Audio And Video Player</a></h1>
+        <p>Demuxes, decodes, and renders synchronized audio and video.</p>
+      </article>
+      <article onclick="window.location.href='./image-decoder/animated-gif-renderer.html';">
+        <h1><a href="./image-decoder/animated-gif-renderer.html">Animated GIF Renderer</a></h1>
+        <p>Using ImageDecoder to implement an animated GIF renderer.</p>
+      </article>
+      <article onclick="window.location.href='./capture-to-file/capture-to-file.html';">
+        <h1><a href="./capture-to-file/capture-to-file.html">Capture To File</a></h1>
+        <p>Reading from camera, encoding via webcodecs, and creating a webm file on disk.</p>
+      </article>
+      <article onclick="window.location.href='./encode-decode-worker/index.html';">
+        <h1><a href="./encode-decode-worker/index.html">WebCodecs in Worker</a></h1>
+        <p>Capture from camera, encode and decode in a worker</p>
+      </article>
+    </div>
+  </div>
+</div>
 </body>
 </html>
