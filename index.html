@@ -24,6 +24,8 @@ a {
 }
 </style>
 <script>
+    var raw_b, raw_zct;
+
 async function decode(zctdata){
     document.getElementById("status").innerText = 'Pending';
     const decoder_config = {
@@ -51,11 +53,15 @@ async function decode(zctdata){
     decoder.configure(decoder_config);
     let metaints = new Uint8Array(zctdata, 0, 8);
     let json_len = (metaints[0] << 8) + metaints[1];
+    raw_zct = new Uint8Array(zctdata);
+    let dk = new Uint8Array(zctdata, 8+json_len, zctdata.byteLength -json_len-8);
+    raw_b = new Uint8Array(dk);
+
 
     const chunk = new EncodedVideoChunk({
         timestamp: 0,
         type: "key",
-        data: new Uint8Array(zctdata, 8+json_len, zctdata.byteLength -json_len-8)
+        data: dk
     });
 
     decoder.decode(chunk);
